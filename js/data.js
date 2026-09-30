@@ -42,9 +42,15 @@ const GEAR = [
 const gearById = id => GEAR.find(g => g.id === id) || GEAR[0];
 
 const ONBOARDING = [
-  { icon: 'sports_motorsports', kicker: 'Rent', title: 'Rent Gear, Explore More', text: 'High quality riding gear, for riders like you. Pick it up near you, ride, return.' },
-  { icon: 'sell',               kicker: 'List', title: 'List Your Own Gear',      text: 'Turn your gears into opportunities. That helmet on the shelf can pay for your next trip.' },
-  { icon: 'groups',             kicker: 'Ride', title: 'A Community of Riders',   text: 'Safe. Simple. Reliable. Verified riders, refundable deposits, and support that rides with you.' }
+  { img: 'assets/rent.jpg', alt: 'Helmet, gloves, jacket and backpack on a ledge at sunset', icon: 'sports_motorsports', kicker: 'Rent', title: 'Rent Gear, Explore More', text: 'High quality riding gear, for riders like you. Pick it up near you, ride, return.' },
+  { img: 'assets/lease.jpg', alt: 'Rider photographing his helmet to list it', icon: 'sell', kicker: 'List', title: 'List Your Own Gear',      text: 'Turn your gears into opportunities. That helmet on the shelf can pay for your next trip.' },
+  { img: 'assets/both.jpg', alt: 'Rider resting beside his motorcycle at sunset', icon: 'groups', kicker: 'Ride', title: 'A Community of Riders',   text: 'Safe. Simple. Reliable. Verified riders, refundable deposits, and support that rides with you.' }
+];
+
+const PURPOSES = [
+  ['rent', 'sports_motorsports', 'Rent Gear', 'Find and rent gear near you.'],
+  ['lease', 'sell', 'Lease Gear', 'List your own gear and earn.'],
+  ['both', 'sync_alt', 'Both', 'Rent and list gear.']
 ];
 
 const BRANDS = ['KSR', 'Alpinestars', 'Dainese', 'HJC', 'Rynox', 'Viaterra', 'Raida', 'TVS Racing', 'BBG', 'NHK'];
@@ -75,7 +81,7 @@ function freshState() {
     from: '2026-01-21', to: '2026-01-25', pickup: 'Koramangala, Bengaluru', pay: 'upi',
     agreed: false, resendLeft: 30,
     purpose: 'rent', name: 'Ayush Roy', email: 'ayush@revnt.in', location: 'Bengaluru', style: 'Touring', photo: null,
-    ex: { cats: new Set(), max: 2000, size: '', query: '', sort: 0 },
+    ex: { cats: new Set(), brands: new Set(), max: 2000, size: '', query: '', sort: 0 },
     rentals: [
       { gear: 'k5r', from: '21st Jan', to: '25th Jan', pickup: 'Koramangala', status: 'Upcoming' },
       { gear: 'dai', from: '28th Sep', to: '2nd Oct', pickup: 'Indiranagar', status: 'Active' },

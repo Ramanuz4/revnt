@@ -736,3 +736,80 @@ textarea.field { height: auto; min-height: 150px; padding: 14px 16px; resize: ve
   body.has-sticky .credit { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   .credit { font-size: 10.5px; padding: 6px 11px 6px 9px; }
 }
+
+/* =========================================================
+   Restored Figma frames: Splash, Onboarding photos, Purpose photos,
+   Filters, Search Results, Request Details, Logout, All Screens
+   ========================================================= */
+
+/* Splash Screen (a real page) */
+.splash-page { position: relative; min-height: 100vh; min-height: 100dvh; background: #111317; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 44px; overflow: hidden; color: #F4F1EC; }
+.splash-page > img { width: clamp(110px, 16vw, 150px); filter: invert(1); animation: logoIn 1s var(--spring) both; }
+.splash-page .bar { width: 190px; height: 5px; border-radius: 5px; background: rgba(255,255,255,.12); overflow: hidden; }
+.splash-page .bar i { display: block; height: 100%; width: 100%; background: #F0643A; transform-origin: left; animation: fillBar 1.9s .3s var(--ease) both; }
+.splash-page .lines { position: absolute; inset: 0; pointer-events: none; }
+.splash-page .lines i { position: absolute; height: 2px; width: 30vw; background: linear-gradient(90deg, transparent, rgba(240,100,58,.6)); animation: streak 1.2s linear infinite; }
+.splash-page .skip { position: absolute; right: 22px; top: calc(20px + env(safe-area-inset-top, 0px)); color: rgba(244,241,236,.6); animation: fadeIn .4s .8s both; }
+.splash-page .skip:hover { color: #fff; }
+
+/* Onboarding 1–3 with photos */
+.welcome .vis { background: #111317; }
+.welcome .vis .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: kenburns 14s ease-out both, photoIn .9s var(--ease) both; }
+.welcome .vis .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35), transparent 30%, transparent 70%, rgba(0,0,0,.35)); pointer-events: none; }
+.welcome .vis .speed { z-index: 1; mix-blend-mode: screen; }
+.welcome .vis .speed i { opacity: .5; }
+.welcome .vis .counter { position: absolute; right: 24px; bottom: 22px; z-index: 2; font: 700 clamp(36px, 5vw, 64px)/1 var(--display); font-stretch: 120%; color: #fff; letter-spacing: -.02em; animation: fadeUp .7s .3s var(--ease) both; }
+.welcome .vis .counter i { font-style: normal; font-size: .4em; opacity: .6; }
+@keyframes kenburns { from { transform: scale(1.14) translate(1.5%, 1%); } to { transform: scale(1); } }
+@keyframes photoIn { from { opacity: 0; filter: blur(8px); } to { opacity: 1; filter: none; } }
+.progress-dots a { height: 6px; width: 40px; border-radius: 6px; background: var(--fill); overflow: hidden; position: relative; display: block; }
+.progress-dots a i { position: absolute; inset: 0; background: var(--brand); transform: scaleX(0); transform-origin: left; }
+.progress-dots a.done i { transform: scaleX(1); }
+.progress-dots a.on i { animation: fillBar .8s .2s var(--ease) forwards; }
+@media (max-width: 899px) {
+  .welcome .vis { height: 52vh; min-height: 300px; }
+  .welcome .vis .shade { background: linear-gradient(180deg, rgba(0,0,0,.4), transparent 30%, transparent 60%, var(--bg)); }
+  .welcome .vis .counter { bottom: 36px; }
+  .welcome .copy { padding-top: 8px; }
+  .welcome .copy .txt { min-height: 0; }
+}
+
+/* Auth side panel with photo (Choose Purpose) */
+.side-art.has-photo .road { display: none; }
+.side-photo { position: absolute; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: opacity .28s ease, transform 6s ease-out; animation: kenburns 14s ease-out both; }
+.side-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,11,14,.55), rgba(10,11,14,.1) 40%, rgba(10,11,14,.75)); }
+.side-photo.swap { opacity: 0; }
+.opt.pic { padding: 10px; gap: 14px; }
+.opt.pic .thumb { position: relative; width: 84px; height: 84px; border-radius: 12px; overflow: hidden; flex: none; }
+.opt.pic .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--ease); }
+.opt.pic:hover .thumb img, .opt.pic.on .thumb img { transform: scale(1.12); }
+.opt.pic .badge-ic { position: absolute; left: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 8px; background: var(--brand); color: var(--brand-ink); display: flex; align-items: center; justify-content: center; }
+.opt.pic .badge-ic .ms { font-size: 17px; }
+
+/* Filters page */
+.filters-page { position: static; max-height: none; overflow: visible; gap: 28px; }
+.filters-page > div { padding-bottom: 22px; border-bottom: 1px solid var(--stroke); }
+.filters-page > div:last-of-type { border-bottom: 0; }
+.apply-bar { position: sticky; bottom: 0; padding: 16px 0 calc(16px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--bg) 30%); margin-top: 10px; }
+
+/* Request Details */
+.req-detail.leaving { animation: leave .45s var(--ease) forwards; }
+
+/* Logout */
+.logout-card { width: min(440px, 100%); text-align: center; animation: popIn .5s var(--spring) both; }
+.big-ic { width: 72px; height: 72px; border-radius: 22px; margin: 0 auto; background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); animation: wobble 1.2s .4s var(--ease) both; }
+.big-ic .ms { font-size: 34px; }
+.danger-btn { background: var(--danger); color: #fff; }
+.danger-btn:hover { background: color-mix(in srgb, var(--danger) 85%, #000); box-shadow: 0 10px 24px -10px var(--danger); }
+@keyframes wobble { 0%, 100% { transform: none; } 20% { transform: rotate(-10deg); } 40% { transform: rotate(8deg); } 60% { transform: rotate(-4deg); } }
+
+/* All Screens */
+.screens-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+.screen-list { list-style: none; margin: 0; padding: 0; counter-reset: sc; }
+.screen-list li { counter-increment: sc; }
+.screen-list a { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 10px; font-size: 14.5px; transition: background .15s, padding .2s var(--ease); }
+.screen-list a::before { content: counter(sc, decimal-leading-zero); font: 500 11px var(--mono); color: var(--soft); width: 22px; }
+.screen-list a span { flex: 1; }
+.screen-list a .ms { font-size: 18px; color: var(--soft); transition: transform .3s var(--spring), color .2s; }
+.screen-list a:hover { background: var(--fill); padding-left: 12px; }
+.screen-list a:hover .ms { transform: translate(2px, -2px); color: var(--brand); }

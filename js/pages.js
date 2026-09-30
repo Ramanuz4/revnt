@@ -20,9 +20,9 @@ function stepper(steps, cur) {
 const crumbs = items => `<nav class="crumbs desk-only" aria-label="Breadcrumb">${items.map((c, i) => i < items.length - 1 ? `<a href="#/${c[1]}">${c[0]}</a>${I('chevron_right')}` : `<span>${c[0]}</span>`).join('')}</nav>`;
 
 /* ---------- auth side panel ---------- */
-function authShell(inner, { head = 'Gear up.<br><em>Ride out.</em>', quote = true } = {}) {
+function authShell(inner, { head = 'Gear up.<br><em>Ride out.</em>', quote = true, img = '' } = {}) {
   return `<div class="auth">
-    <aside class="side-art"><div class="road"></div>
+    <aside class="side-art ${img ? 'has-photo' : ''}">${img ? `<div class="side-photo" id="sidePhoto" style="background-image:url('${img}')"></div>` : ''}<div class="road"></div>
       <a href="#/home" aria-label="REVNT home"><img src="${ASSETS.logo}" alt="REVNT"></a>
       <h2>${head}</h2>
       ${quote ? `<div class="quote">${avatarImg(44)}<div><b>“Rented a Dainese jacket for Spiti instead of buying one. Saved ₹28k.”</b><div style="opacity:.7;margin-top:4px">Riya M. · 41 rentals</div></div></div>` : '<span></span>'}
@@ -36,7 +36,7 @@ function authShell(inner, { head = 'Gear up.<br><em>Ride out.</em>', quote = tru
 /* ---------- explore helpers ---------- */
 function exploreList() {
   const ex = S.ex, q = ex.query.trim().toLowerCase();
-  let list = GEAR.filter(g => (!ex.cats.size || ex.cats.has(g.cat)) && g.price <= (ex.max >= 2000 ? Infinity : ex.max)
+  let list = GEAR.filter(g => (!ex.cats.size || ex.cats.has(g.cat)) && (!ex.brands.size || ex.brands.has(g.brand)) && g.price <= (ex.max >= 2000 ? Infinity : ex.max)
     && (!q || (g.name + g.brand + g.cat).toLowerCase().includes(q)));
   if (ex.sort === 1) list.sort((a, b) => a.price - b.price);
   if (ex.sort === 2) list.sort((a, b) => b.price - a.price);
@@ -48,12 +48,14 @@ function filterPanel() {
   return `<div><h3>Category</h3><div class="stack" style="gap:6px">${CATS.map(c => `<button class="checkrow ${ex.cats.has(c.id) ? 'on' : ''}" data-act="fcat" data-v="${c.id}" aria-pressed="${ex.cats.has(c.id)}"><span class="chk">${I('check')}</span>${c.id}<span class="sp"></span><span class="small">${GEAR.filter(g => g.cat === c.id).length}</span></button>`).join('')}</div></div>
     <div><h3>Price per day</h3><input type="range" class="range" id="fmax" min="100" max="2000" step="50" value="${ex.max}" aria-label="Maximum price per day"><div class="row small" style="justify-content:space-between"><span>₹100</span><b class="accent" id="fmaxL">${ex.max >= 2000 ? 'Any price' : 'Up to ' + rs(ex.max)}</b><span>₹2000+</span></div></div>
     <div><h3>Size</h3>${chips(['S', 'M', 'L', 'XL'], ex.size, 'fsize', 'fill')}</div>
+    <div><h3>Brands</h3><div class="chips">${[...new Set(GEAR.map(g => g.brand))].map(b => `<button class="chip sm ${ex.brands.has(b) ? 'on' : ''}" data-act="fbrand" data-v="${esc(b)}" aria-pressed="${ex.brands.has(b)}">${esc(b)}</button>`).join('')}</div></div>
     <button class="btn ghost sm" data-act="clearF">${I('restart_alt')}Clear all filters</button>`;
 }
 function resultsHtml() {
   const list = exploreList(), ex = S.ex;
   const af = [...ex.cats].map(c => `<button class="af" data-act="fcat" data-v="${c}">${c}${I('close')}</button>`)
     .concat(ex.max < 2000 ? [`<button class="af" data-act="fmaxClear">Up to ${rs(ex.max)}${I('close')}</button>`] : [])
+    .concat([...ex.brands].map(b => `<button class="af" data-act="fbrand" data-v="${esc(b)}">${esc(b)}${I('close')}</button>`))
     .concat(ex.size ? [`<button class="af" data-act="fsize" data-v="${ex.size}">Size ${ex.size}${I('close')}</button>`] : []);
   return `${af.length ? `<div class="active-filters">${af.join('')}</div>` : ''}
     <p class="small" style="margin-bottom:14px">${list.length} item${list.length === 1 ? '' : 's'} near ${esc(S.location)}</p>
@@ -86,27 +88,24 @@ function previewCard() {
 /* ================= PAGES ================= */
 const PAGES = {
 
-  /* ----- onboarding (Onboarding 1–3) ----- */
-  'welcome': {
-    title: 'Welcome', layout: 'bare',
-    html: () => `<div class="welcome">
-      <div class="vis">${ONBOARDING.map((o, i) => art(['Helmets', 'Accessories', 'Jackets'][i], { icon: o.icon, cls: i === S.onb ? 'on' : '', big: true })).join('')}
-        ${speedlines(10)}<a class="top" href="#/home"><img src="${ASSETS.logo}" alt="REVNT"></a></div>
-      <div class="copy">
-        <div class="progress-dots" role="tablist">${ONBOARDING.map((_, i) => `<button role="tab" aria-label="Slide ${i + 1}" data-act="onb" data-v="${i}" class="${i === S.onb ? 'on' : i < S.onb ? 'done' : ''}"><i></i></button>`).join('')}</div>
-        <div class="txt anim" id="onbTxt"><span class="kicker">${ONBOARDING[S.onb].kicker}</span><h1 style="margin:12px 0">${ONBOARDING[S.onb].title}</h1><p class="lead">${ONBOARDING[S.onb].text}</p></div>
-        <div class="row" style="gap:12px;flex-wrap:wrap">
-          ${S.onb < 2 ? `<button class="btn lg" data-act="onbNext">Next${I('arrow_forward', 'slide')}</button><a class="btn lg ghost" href="#/signin">Skip</a>`
-            : `<a class="btn lg" href="#/register">Get Started!${I('arrow_forward', 'slide')}</a><a class="btn lg ghost" href="#/signin">Sign in</a>`}
-        </div>
-        <a class="small link" style="align-self:flex-start;font-weight:500" href="#/home">Browse gear without an account</a>
-      </div></div>`,
-    after() { startOnbTimer(); }
+  /* ----- Splash Screen ----- */
+  'splash': {
+    title: 'Splash Screen', layout: 'bare',
+    html: () => `<div class="splash-page">
+      <div class="lines" aria-hidden="true"><i style="top:22%;animation-delay:.1s"></i><i style="top:38%;animation-delay:.5s"></i><i style="top:61%;animation-delay:.25s"></i><i style="top:78%;animation-delay:.7s"></i></div>
+      <img src="${ASSETS.logo}" alt="REVNT — Gear up. Ride out.">
+      <div class="bar"><i></i></div>
+      <button class="skip small" data-act="skipSplash">Skip intro</button></div>`,
+    after() { clearTimeout(window.splashT); window.splashT = setTimeout(() => { if (current.key === 'splash') { navStack.length = 0; location.replace('#/onboarding/1'); } }, REDUCED ? 400 : 2300); }
   },
+  'welcome': { redirect: 'onboarding/1' },
+  'onboarding/1': onbPage(0),
+  'onboarding/2': onbPage(1),
+  'onboarding/3': onbPage(2),
 
   /* ----- Sign-in ----- */
   'signin': {
-    title: 'Sign in', layout: 'auth',
+    title: 'Sign-in', layout: 'auth',
     html: () => authShell(`
       <h1 class="h1">Welcome Back</h1><p class="lead" style="margin:6px 0 26px">Sign-in to continue</p>
       <form class="stack" id="signinForm" novalidate>
@@ -123,7 +122,7 @@ const PAGES = {
 
   /* ----- Register ----- */
   'register': {
-    title: 'Create account', layout: 'auth',
+    title: 'Register', layout: 'auth',
     html: () => authShell(`
       <h1 class="h1">Create Account</h1><p class="lead" style="margin:6px 0 24px">Rent or list riding gear in minutes.</p>
       <form class="stack" id="regForm" novalidate>
@@ -142,7 +141,7 @@ const PAGES = {
 
   /* ----- Verification ----- */
   'verify': {
-    title: 'Verify', layout: 'auth',
+    title: 'Verification', layout: 'auth',
     html: () => authShell(`
       <div class="icon-circ" style="margin-bottom:18px">${I('sms')}</div>
       <h1 class="h1">Verify Your Account</h1><p class="lead" style="margin:6px 0 26px">Enter the 6-digit code sent to your phone.</p>
@@ -155,7 +154,7 @@ const PAGES = {
 
   /* ----- Personalization ----- */
   'setup': {
-    title: 'Set up', layout: 'auth',
+    title: 'Personalization', layout: 'auth',
     html: () => authShell(`
       ${stepper(['Profile', 'Purpose'], 0)}
       <h1 class="h1">Let’s Set You Up</h1><p class="lead" style="margin:6px 0 18px">This helps us personalize your experience.</p>
@@ -171,18 +170,18 @@ const PAGES = {
 
   /* ----- Choose Purpose ----- */
   'purpose': {
-    title: 'Purpose', layout: 'auth',
+    title: 'Choose Purpose', layout: 'auth',
     html: () => authShell(`
       ${stepper(['Profile', 'Purpose'], 1)}
       <h1 class="h1">How will you use REVNT</h1><p class="lead" style="margin:6px 0 24px">You can always change this later.</p>
-      <div class="stack" role="radiogroup">${[['rent', 'sports_motorsports', 'Rent Gear', 'Find and rent gear near you.'], ['lease', 'sell', 'Lease Gear', 'List your own gear and earn.'], ['both', 'sync_alt', 'Both', 'Rent and list gear.']].map(([k, ic, t, s]) =>
-        `<button class="opt ${S.purpose === k ? 'on' : ''}" role="radio" aria-checked="${S.purpose === k}" data-act="purpose" data-v="${k}"><span class="icon-circ">${I(ic)}</span><span><b>${t}</b><span class="s">${s}</span></span>${I('check_circle', 'ok fill')}</button>`).join('')}</div>
-      <button class="btn block lg" style="margin-top:24px" data-act="purposeDone">Continue${I('arrow_forward', 'slide')}</button>`, { head: 'Rent it.<br>List it.<br><em>Ride it.</em>', quote: false })
+      <div class="stack" role="radiogroup">${PURPOSES.map(([k, ic, t, s]) =>
+        `<button class="opt pic ${S.purpose === k ? 'on' : ''}" role="radio" aria-checked="${S.purpose === k}" data-act="purpose" data-v="${k}"><span class="thumb"><img src="assets/${k}-thumb.jpg" alt=""><span class="badge-ic">${I(ic)}</span></span><span><b>${t}</b><span class="s">${s}</span></span>${I('check_circle', 'ok fill')}</button>`).join('')}</div>
+      <button class="btn block lg" style="margin-top:24px" data-act="purposeDone">Continue${I('arrow_forward', 'slide')}</button>`, { head: 'Rent it.<br>List it.<br><em>Ride it.</em>', quote: false, img: `assets/${S.purpose}.jpg` })
   },
 
   /* ----- Main App - Home ----- */
   'home': {
-    title: 'Home', layout: 'site', tab: 'home',
+    title: 'Main App - Home', layout: 'site', tab: 'home',
     html: () => `
       <section class="hero">${speedlines(14)}<div class="wrap hero-grid">
         <div>
@@ -233,7 +232,7 @@ const PAGES = {
       </div></section>`,
     after(p, root) {
       rotator($('#rot', root)); parallax(root);
-      $('#heroSearch', root).addEventListener('submit', e => { e.preventDefault(); S.ex.query = $('#hq', root).value; go('explore'); });
+      $('#heroSearch', root).addEventListener('submit', e => { e.preventDefault(); S.ex = { cats: new Set(), brands: new Set(), max: 2000, size: '', query: $('#hq', root).value, sort: 0 }; go('results'); });
     }
   },
 
@@ -248,7 +247,7 @@ const PAGES = {
         <div class="toolbar">
           <label class="field">${I('search')}<input id="q" type="search" placeholder="Search for Gear..." value="${esc(S.ex.query)}" aria-label="Search for gear"></label>
           <select class="field" id="sort" style="flex:0 0 auto;width:auto;min-width:0" aria-label="Sort">${['Recommended', 'Price: low to high', 'Price: high to low', 'Top rated'].map((o, i) => `<option value="${i}" ${S.ex.sort === i ? 'selected' : ''}>${o}</option>`).join('')}</select>
-          <button class="btn ghost mob-only" data-act="openFilters">${I('tune')}Filter</button>
+          <a class="btn ghost mob-only" href="#/filters">${I('tune')}Filter</a>
         </div>
         <div class="ex-grid"><aside class="filters-side" id="fpanel" aria-label="Filters">${filterPanel()}</aside><div id="results">${resultsHtml()}</div></div>
       </div></section>`;
@@ -259,6 +258,34 @@ const PAGES = {
       $('#sort', root).addEventListener('change', e => { S.ex.sort = +e.target.value; refreshResults(true); });
       wireRange(root);
     }
+  },
+
+  /* ----- Filters ----- */
+  'filters': {
+    title: 'Filters', layout: 'site', back: 'explore',
+    html: () => `<section class="page"><div class="wrap narrow">
+      ${crumbs([['Home', 'home'], ['Explore', 'explore'], ['Filters', 'filters']])}
+      <div class="page-head"><div><h1 class="h1">Filters</h1><p class="lead">Narrow down gear near ${esc(S.location)}.</p></div><button class="see" data-act="clearF">Clear all</button></div>
+      <div class="filters-side filters-page" id="fpanel">${filterPanel()}</div>
+      <div class="apply-bar"><button class="btn block lg" data-act="applyF">Apply · <span id="applyCount">${exploreList().length}</span>&nbsp;results</button></div>
+    </div></section>`,
+    after(p, root) { wireRange(root); }
+  },
+
+  /* ----- Search Results ----- */
+  'results': {
+    title: 'Search Results', layout: 'site', tab: 'explore', back: 'explore',
+    html: () => {
+      const ex = S.ex, one = ex.cats.size === 1 ? [...ex.cats][0] : null;
+      const label = ex.query ? `“${esc(ex.query)}”` : one ? esc(one) : 'Results';
+      return `<section class="page"><div class="wrap">
+        ${crumbs([['Home', 'home'], ['Explore', 'explore'], ['Search Results', 'results']])}
+        <div class="page-head"><div><h1 class="h1">${label} (<span id="resCount">${exploreList().length}</span>)</h1><p class="lead">${one ? catById(one).blurb : 'Matching gear from riders near you.'}</p></div>
+          <div class="row"><select class="field" id="sort" style="width:auto" aria-label="Sort">${['Recommended', 'Price: low to high', 'Price: high to low', 'Top rated'].map((o, i) => `<option value="${i}" ${ex.sort === i ? 'selected' : ''}>${o}</option>`).join('')}</select><a class="btn ghost" href="#/filters">${I('tune')}Filters</a></div></div>
+        <div id="results">${resultsHtml()}</div>
+      </div></section>`;
+    },
+    after(p, root) { $('#sort', root).addEventListener('change', e => { S.ex.sort = +e.target.value; refreshResults(true); }); }
   },
 
   /* ----- Gear Details ----- */
@@ -353,7 +380,7 @@ const PAGES = {
 
   /* ----- Renting Confirmed ----- */
   'confirmed': {
-    title: 'Booking confirmed', layout: 'site',
+    title: 'Renting Confirmed', layout: 'site',
     html: () => {
       const r = S.rentals[0], g = gearById(r.gear);
       return `<section class="celebrate"><canvas id="confetti"></canvas>
@@ -478,10 +505,31 @@ const PAGES = {
           <div class="row" style="justify-content:space-between;flex-wrap:wrap"><b>${esc(r.gear)}</b><span class="dates">${r.from}${I('arrow_forward')}${r.to}</span></div>
           <div class="msg">${esc(r.msg)}</div>
           <div class="row" style="justify-content:space-between"><span class="small">You earn</span><b class="accent" style="font-size:18px">${rs(r.total - 1100)}</b></div>
-          ${r.status === 'New' ? `<div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn" data-act="decide" data-id="${r.id}" data-v="Accepted">${I('check')}Accept</button><button class="btn ghost" data-act="decide" data-id="${r.id}" data-v="Declined">Decline</button></div>`
-            : `<span class="pill ${r.status === 'Accepted' ? 'ok' : 'mute'}" style="align-self:flex-start">${r.status}</span>`}
+          <div class="row">${r.status === 'New' ? '<span class="pill">New</span>' : `<span class="pill ${r.status === 'Accepted' ? 'ok' : 'mute'}">${r.status}</span>`}<span class="sp"></span><a class="btn sm" href="#/requests/${r.id}">View Details${I('arrow_forward', 'slide')}</a></div>
         </div>`).join('') || `<div class="empty">${I('inbox')}No ${S.reqTab.toLowerCase()} requests.</div>`}</div>
       </div></section>`;
+    }
+  },
+
+  'requests/:id': {
+    title: 'Request Details', layout: 'site', tab: 'alerts', back: 'requests', auth: true,
+    html: ({ id }) => {
+      const r = S.requests.find(x => x.id === +id) || S.requests[0];
+      return `<section class="page"><div class="wrap narrow">
+        ${crumbs([['My Listings', 'listings'], ['Rental Requests', 'requests'], [r.who, 'requests/' + r.id]])}
+        <div class="card pad req-detail">
+          <div class="row" style="gap:16px">${avatarImg(72)}<div style="flex:1"><h1 class="h2">${esc(r.who)}</h1><div class="rate">${I('star')}${r.rating} · ${r.count} rentals · verified rider</div></div><button class="btn ghost sm" data-act="chat" data-v="${esc(r.who)}">${I('chat_bubble')}Message</button></div>
+          <hr class="rule">
+          <div class="kv"><span>Dates</span><b>${r.from} – ${r.to}</b></div>
+          <div class="kv"><span>Gear</span><b>${esc(r.gear)}</b></div>
+          <div class="kv"><span>Renter pays</span><b>${rs(r.total)}</b></div>
+          <div class="kv"><span>You earn</span><b class="accent">${rs(r.total - 1100)}</b></div>
+          <h2 class="h3" style="margin:18px 0 8px">Message</h2>
+          <div class="bubble them" style="max-width:100%">${esc(r.msg)}</div>
+          ${r.status === 'New'
+            ? `<div class="grid2" style="grid-template-columns:1fr 1fr;margin-top:22px"><button class="btn lg" data-act="decide" data-id="${r.id}" data-v="Accepted">${I('check')}Accept</button><button class="btn lg ghost" data-act="decide" data-id="${r.id}" data-v="Declined">Decline</button></div>`
+            : `<p class="lead" style="margin-top:18px">You <b class="${r.status === 'Accepted' ? '' : ''}">${r.status.toLowerCase()}</b> this request.</p>`}
+        </div></div></section>`;
     }
   },
 
@@ -537,7 +585,7 @@ const PAGES = {
       <h2 class="h3" style="margin-bottom:12px">Appearance</h2>
       <div class="theme-opts" role="radiogroup">${[['light', 'light_mode', 'Light'], ['system', 'contrast', 'System'], ['dark', 'dark_mode', 'Dark']].map(([k, ic, l]) => `<button class="${theme === k ? 'on' : ''}" role="radio" aria-checked="${theme === k}" data-act="theme" data-v="${k}">${I(ic)}${l}</button>`).join('')}</div>
       <div class="tiles">${[['two_wheeler', 'Your Trips', 'rentals'], ['credit_card', 'Payment Methods', 'payment'], ['support_agent', 'Help and Support', 'help'], ['gavel', 'Terms and Conditions', 'terms']].map(([ic, t, to]) => `<a class="tile" href="#/${to}"><span class="icon-circ">${I(ic)}</span><b>${t}</b>${I('chevron_right', 'go')}</a>`).join('')}
-        <button class="tile danger" data-act="logoutAsk"><span class="icon-circ">${I('logout')}</span><b>Log Out</b></button></div>
+        <a class="tile danger" href="#/logout"><span class="icon-circ">${I('logout')}</span><b>Log Out</b>${I('chevron_right', 'go')}</a></div>
     </div></section>`
   },
 
@@ -568,8 +616,65 @@ const PAGES = {
       </ol>
       <button class="btn lg" style="margin-top:28px" data-act="acceptTerms">${I('check')}I Agree</button>
     </div></section>`
+  },
+
+  /* ----- Logout ----- */
+  'logout': {
+    title: 'Logout', layout: 'site', back: 'settings',
+    html: () => `<section class="celebrate"><div class="card pad logout-card">
+      <div class="icon-circ big-ic">${I('logout')}</div>
+      <h1 class="h2" style="margin-top:18px">Are you sure you want to logout?</h1>
+      <p class="muted" style="margin-top:8px">You will need to sign-in again to access your account and preferences.</p>
+      <div class="stack" style="margin-top:26px;gap:10px"><button class="btn block lg danger-btn" data-act="logout">Logout</button><button class="btn block lg ghost" data-act="back">Cancel</button></div>
+    </div></section>`
+  },
+
+  /* ----- All screens (sitemap of every Figma frame) ----- */
+  'screens': {
+    title: 'All Screens', layout: 'site',
+    html: () => `<section class="page"><div class="wrap">
+      <div class="page-head"><div><span class="kicker">Figma → Website</span><h1 class="h1" style="margin-top:10px">All Screens</h1><p class="lead">Every wireframe from the REVNT Figma file, as a live page.</p></div>
+        ${S.signedIn ? '<span class="pill ok">Signed in as demo user</span>' : `<button class="btn" data-act="demoSignIn">${I('bolt')}Sign in as demo user</button>`}</div>
+      <div class="screens-grid">${SCREEN_MAP.map(([grp, items], gi) => `<div class="card pad" data-reveal style="--d:${gi}"><h2 class="h3" style="margin-bottom:10px">${grp}</h2><ol class="screen-list">${items.map(([name, path]) => `<li><a href="#/${path}"><span>${name}</span>${I('arrow_outward')}</a></li>`).join('')}</ol></div>`).join('')}</div>
+    </div></section>`
   }
 };
+
+const SCREEN_MAP = [
+  ['Onboarding', [['Splash Screen', 'splash'], ['Onboarding 1', 'onboarding/1'], ['Onboarding 2', 'onboarding/2'], ['Onboarding 3', 'onboarding/3'], ['Sign-in', 'signin'], ['Register', 'register'], ['Verification', 'verify'], ['Personalization', 'setup'], ['Choose Purpose', 'purpose']]],
+  ['Renting gear', [['Main App - Home', 'home'], ['Explore', 'explore'], ['Filters', 'filters'], ['Search Results', 'results'], ['Gear Details', 'gear/k5r'], ['Rental Details', 'checkout'], ['Payment', 'payment'], ['Renting Confirmed', 'confirmed'], ['My Rentals', 'rentals']]],
+  ['Listing gear', [['List Gear', 'list'], ['Add Photos', 'list/photos'], ['Gear Information', 'list/info'], ['Pricing and Availability', 'list/pricing'], ['Review Listing', 'list/review'], ['Listing Live', 'list/live'], ['My Listings', 'listings'], ['Rental Requests', 'requests'], ['Request Details', 'requests/1']]],
+  ['Account', [['Earnings', 'earnings'], ['Messages', 'messages'], ['Chat', 'messages/Ayush%20K.'], ['Notifications', 'notifications'], ['Profile', 'profile'], ['Settings', 'settings'], ['Help and Support', 'help'], ['Terms and Conditions', 'terms'], ['Logout', 'logout']]]
+];
+
+/* ---------- onboarding page factory (Onboarding 1–3) ---------- */
+function onbPage(i) {
+  return {
+    title: `Onboarding ${i + 1}`, layout: 'bare',
+    html: () => {
+      const o = ONBOARDING[i];
+      return `<div class="welcome">
+        <div class="vis"><img class="photo" src="${o.img}" alt="${esc(o.alt)}">${speedlines(8)}<div class="shade"></div>
+          <a class="top" href="#/home" aria-label="REVNT home"><img src="${ASSETS.logo}" alt="REVNT"></a>
+          <span class="counter">0${i + 1} <i>/ 03</i></span></div>
+        <div class="copy">
+          <div class="progress-dots">${ONBOARDING.map((_, j) => `<a href="#/onboarding/${j + 1}" aria-label="Slide ${j + 1}" class="${j === i ? 'on' : j < i ? 'done' : ''}"><i></i></a>`).join('')}</div>
+          <div class="txt anim"><span class="kicker">${o.kicker}</span><h1 style="margin:12px 0">${o.title}</h1><p class="lead">${o.text}</p></div>
+          <div class="row" style="gap:12px;flex-wrap:wrap">
+            ${i < 2 ? `<a class="btn lg" href="#/onboarding/${i + 2}">Next${I('arrow_forward', 'slide')}</a><a class="btn lg ghost" href="#/signin">Skip</a>`
+              : `<a class="btn lg" href="#/register">Get Started!${I('arrow_forward', 'slide')}</a><a class="btn lg ghost" href="#/signin">Sign in</a>`}
+          </div>
+          <a class="small link" style="align-self:flex-start;font-weight:500" href="#/home">Browse gear without an account</a>
+        </div></div>`;
+    },
+    after(p, root) {
+      const w = $('.welcome', root); let sx = null;
+      w.addEventListener('pointerdown', e => { sx = e.clientX; }, { passive: true });
+      w.addEventListener('pointerup', e => { if (sx === null) return; const dx = e.clientX - sx; sx = null;
+        if (dx < -60) go(i < 2 ? `onboarding/${i + 2}` : 'register'); else if (dx > 60 && i > 0) go(`onboarding/${i}`); }, { passive: true });
+    }
+  };
+}
 
 /* ---------- inbox (Messages + Chat) ---------- */
 function inbox(who) {

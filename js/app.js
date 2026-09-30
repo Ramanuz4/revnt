@@ -42,10 +42,10 @@ function back() {
 function onRoute() {
   let r = parse(location.hash);
   if (!r) {
-    let seen = false; try { seen = !!localStorage.getItem('revnt-seen'); } catch (e) { /* ignore */ }
-    location.replace('#/' + (seen ? 'home' : 'welcome')); return;
+    location.replace('#/splash'); return;
   }
   const pg = PAGES[r.key];
+  if (pg.redirect) { location.replace('#/' + pg.redirect); return; }
   if (pg.auth && !S.signedIn) {
     S.after = r.path; location.replace('#/signin');
     setTimeout(() => toast('Sign in to continue', 'lock'), 100); return;
@@ -116,7 +116,7 @@ function renderChrome() {
       <div><a class="logo" href="#/home"><img src="${ASSETS.logo}" alt="">REVNT</a><p class="small" style="margin-top:12px;max-width:280px">Riding gear rentals from riders, for riders. Gear up. Ride out.</p></div>
       <div><h4>Rent</h4>${CATS.slice(0, 4).map(c => `<button data-act="cat" data-v="${c.id}">${c.id}</button>`).join('')}</div>
       <div><h4>Earn</h4><a href="#/list">List your gear</a><a href="#/earnings">Earnings</a><a href="#/listings">My listings</a></div>
-      <div><h4>Company</h4><a href="#/help">Help and Support</a><a href="#/terms">Terms and Conditions</a><a href="#/welcome">How REVNT works</a></div>
+      <div><h4>Company</h4><a href="#/help">Help and Support</a><a href="#/terms">Terms and Conditions</a><a href="#/onboarding/1">How REVNT works</a><a href="#/screens">All screens</a></div>
     </div><div class="base"><span>© 2026 REVNT · Bengaluru</span><span class="mono">#RideWithREVNT</span></div></div>`;
   }
 }
@@ -142,23 +142,29 @@ function openModal(html) { $('#overlay').innerHTML = `<div class="modal" data-ac
 /* ---------- explore partial updates ---------- */
 let resTimer;
 function refreshResults(skeleton) {
-  const res = $('#results'); if (!res) return;
+  const res = $('#results');
+  const ac = $('#applyCount'); if (ac) ac.textContent = exploreList().length;
+  const rc = $('#resCount'); if (rc) rc.textContent = exploreList().length;
   const fp = $('#fpanel'); if (fp) { fp.innerHTML = filterPanel(); wireRange(fp); }
   const sh = $('#sheetFilters'); if (sh) { sh.innerHTML = filterPanel(); wireRange(sh); }
+  if (!res) return;
   clearTimeout(resTimer);
   const paint = () => { res.innerHTML = resultsHtml(); reveal(res); tilt(res); };
   if (skeleton && !REDUCED) { res.innerHTML = `<p class="small" style="margin-bottom:14px">Updating…</p><div class="cards two-mob">${'<div class="skeleton"></div>'.repeat(Math.max(2, Math.min(6, exploreList().length)))}</div>`; resTimer = setTimeout(paint, 320); }
   else paint();
   // title reflects a single category
   const h = $('.page-head .h1', view), one = S.ex.cats.size === 1 ? [...S.ex.cats][0] : null;
-  if (h) h.textContent = one || 'Explore';
+  if (h && current.key === 'explore') h.textContent = one || 'Explore';
 }
 function wireRange(root) {
   const r = $('#fmax', root); if (!r) return;
   let t;
   r.addEventListener('input', () => {
     S.ex.max = +r.value; const lbl = $('#fmaxL', root); if (lbl) lbl.textContent = r.value >= 2000 ? 'Any price' : 'Up to ' + rs(r.value);
-    clearTimeout(t); t = setTimeout(() => { const res = $('#results'); if (res) { res.innerHTML = resultsHtml(); reveal(res); tilt(res); } }, 150);
+    clearTimeout(t); t = setTimeout(() => {
+      const res = $('#results'); if (res) { res.innerHTML = resultsHtml(); reveal(res); tilt(res); }
+      const ac = $('#applyCount'); if (ac) ac.textContent = exploreList().length;
+    }, 150);
   });
 }
 function wireBind(root) {
@@ -166,30 +172,6 @@ function wireBind(root) {
     const k = el.dataset.bind; S.listing[k] = ['perDay', 'deposit'].includes(k) ? (+el.value || 0) : el.value;
     const pv = $('#pv'); if (pv) pv.innerHTML = previewCard();
   }));
-}
-
-/* ---------- onboarding carousel ---------- */
-let onbTimer;
-function startOnbTimer() {
-  clearInterval(onbTimer);
-  onbTimer = setInterval(() => { if (current.key !== 'welcome') return clearInterval(onbTimer); setOnb((S.onb + 1) % 3); }, 5000);
-  const w = $('.welcome'); if (!w) return;
-  let sx = null;
-  w.addEventListener('pointerdown', e => { sx = e.clientX; }, { passive: true });
-  w.addEventListener('pointerup', e => { if (sx === null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 60) setOnb(Math.max(0, Math.min(2, S.onb + (dx < 0 ? 1 : -1)))); }, { passive: true });
-}
-function setOnb(i) {
-  if (i === S.onb) return;
-  S.onb = i;
-  const w = $('.welcome'); if (!w) return;
-  $$('.vis .art', w).forEach((a, j) => a.classList.toggle('on', j === i));
-  const o = ONBOARDING[i];
-  $('#onbTxt').outerHTML = `<div class="txt anim" id="onbTxt"><span class="kicker">${o.kicker}</span><h1 style="margin:12px 0">${o.title}</h1><p class="lead">${o.text}</p></div>`;
-  $('.progress-dots', w).innerHTML = ONBOARDING.map((_, j) => `<button role="tab" aria-label="Slide ${j + 1}" data-act="onb" data-v="${j}" class="${j === i ? 'on' : j < i ? 'done' : ''}"><i></i></button>`).join('');
-  const row = $('.copy .row', w);
-  row.innerHTML = i < 2 ? `<button class="btn lg" data-act="onbNext">Next${I('arrow_forward', 'slide')}</button><a class="btn lg ghost" href="#/signin">Skip</a>`
-    : `<a class="btn lg" href="#/register">Get Started!${I('arrow_forward', 'slide')}</a><a class="btn lg ghost" href="#/signin">Sign in</a>`;
-  startOnbTimer();
 }
 
 /* ---------- OTP ---------- */
@@ -276,16 +258,20 @@ const A = {
   purpose(el) {
     S.purpose = el.dataset.v;
     $$('.opt').forEach(o => { const on = o.dataset.v === S.purpose; o.classList.toggle('on', on); o.setAttribute('aria-checked', on); });
+    const ph = $('#sidePhoto');
+    if (ph) { ph.classList.add('swap'); setTimeout(() => { ph.style.backgroundImage = `url('assets/${S.purpose}.jpg')`; ph.classList.remove('swap'); }, 280); }
   },
   purposeDone() { toast(`Welcome to REVNT, ${S.name.split(' ')[0]}!`, 'celebration'); signIn(S.purpose === 'lease' ? 'list' : 'home'); },
-  onb(el) { setOnb(+el.dataset.v); },
-  onbNext() { setOnb(Math.min(2, S.onb + 1)); },
+  skipSplash() { clearTimeout(window.splashT); navStack.length = 0; location.replace('#/onboarding/1'); },
+  demoSignIn() { S.signedIn = true; toast('Signed in as demo user', 'verified'); render(); },
 
-  cat(el) { S.ex = { cats: new Set([el.dataset.v]), max: 2000, size: '', query: '', sort: 0 }; if (current.key === 'explore') { render(); } else go('explore'); },
+  cat(el) { S.ex = { cats: new Set([el.dataset.v]), brands: new Set(), max: 2000, size: '', query: '', sort: 0 }; if (current.key === 'results') render(); else go('results'); },
+  fbrand(el) { const b = el.dataset.v; S.ex.brands.has(b) ? S.ex.brands.delete(b) : S.ex.brands.add(b); refreshResults(true); },
+  applyF() { go('results'); },
   fcat(el) { const c = el.dataset.v; S.ex.cats.has(c) ? S.ex.cats.delete(c) : S.ex.cats.add(c); refreshResults(true); },
   fsize(el) { S.ex.size = S.ex.size === el.dataset.v ? '' : el.dataset.v; refreshResults(true); },
   fmaxClear() { S.ex.max = 2000; refreshResults(true); },
-  clearF() { S.ex = { cats: new Set(), max: 2000, size: '', query: '', sort: 0 }; const q = $('#q'); if (q) q.value = ''; refreshResults(true); toast('Filters cleared', 'restart_alt'); },
+  clearF() { S.ex = { cats: new Set(), brands: new Set(), max: 2000, size: '', query: '', sort: 0 }; const q = $('#q'); if (q) q.value = ''; refreshResults(true); toast('Filters cleared', 'restart_alt'); },
   openFilters() { openSheet(`<div class="row" style="margin-bottom:16px"><h2 class="h2">Filters</h2><span class="sp"></span><button class="icon-btn" data-act="closeSheet" aria-label="Close">${I('close')}</button></div><div class="filters-side" id="sheetFilters" style="position:static;max-height:none">${filterPanel()}</div><button class="btn block lg" style="margin-top:18px" data-act="closeSheet">Show ${exploreList().length} results</button>`); wireRange($('#sheetFilters')); },
   closeSheet(el, e) { if (e && el.classList.contains('sheet') && e.target !== el) return; closeOverlays(); refreshResults(); },
   closeModal(el, e) { if (e && el.classList.contains('modal') && e.target !== el) return; closeOverlays(); },
@@ -340,9 +326,10 @@ const A = {
   qtab(el) { S.reqTab = el.dataset.v; render(); },
   decide(el) {
     const r = S.requests.find(x => x.id === +el.dataset.id); r.status = el.dataset.v;
-    const card = $('#req' + r.id);
     toast(`${r.who}’s request ${r.status.toLowerCase()}`, r.status === 'Accepted' ? 'check_circle' : 'cancel');
-    if (card && !REDUCED) { card.classList.add('leaving'); setTimeout(() => render(), 420); } else render();
+    S.reqTab = r.status;
+    const card = $('.req-detail'); if (card && !REDUCED) card.classList.add('leaving');
+    setTimeout(() => go('requests'), REDUCED ? 0 : 420);
   },
   bar(el) { S.bar = +el.dataset.v; render(); },
   txAll() { S.txAll = !S.txAll; render(); },
@@ -350,7 +337,8 @@ const A = {
     const i = +el.dataset.v; S.faq = S.faq === i ? -1 : i;
     $$('#faqs .acc').forEach(acc => { const on = +acc.querySelector('button').dataset.v === S.faq; acc.classList.toggle('open', on); acc.querySelector('.collapse').classList.toggle('open', on); acc.querySelector('button').setAttribute('aria-expanded', on); });
   },
-  logoutAsk() {
+  logoutAsk() { go('logout'); },
+  logoutModal() {
     openModal(`<div class="icon-circ">${I('logout')}</div><h2 class="h2">Are you sure you want to logout?</h2><p class="muted" style="margin-top:8px">You will need to sign-in again to access your account and preferences.</p>
       <div class="acts"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn" style="background:var(--danger)" data-act="logout">Logout</button></div>`);
   },
@@ -378,10 +366,5 @@ if (document.fonts && document.fonts.load) {
 }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { moveNavInd(); segThumbs(view); });
 
-/* ---------- boot: intro loader, then route ---------- */
+/* ---------- boot ---------- */
 onRoute();
-(function splash() {
-  const sp = $('#splash');
-  const hold = REDUCED ? 0 : 1500;
-  setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 900); }, hold);
-})();
