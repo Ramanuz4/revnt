@@ -68,6 +68,8 @@ function render(dir) {
   view.innerHTML = pg.html(current.params);
   if (nav) { view.classList.remove('view', 'back'); void view.offsetWidth; view.classList.add('view'); if (dir === 'back') view.classList.add('back'); window.scrollTo(0, 0); }
   else window.scrollTo(0, keepY);
+  $$('body > .sticky-cta').forEach(e => e.remove());
+  const stickyBar = $('.sticky-cta', view); if (stickyBar) document.body.appendChild(stickyBar); /* keep fixed bars outside the animated view */
   pg.after && pg.after(current.params, view);
   reveal(view); tilt(view); segThumbs(view); countUp(view);
   document.title = pg.title === 'Home' ? 'REVNT — Gear up. Ride out.' : `${pg.title} · REVNT`;
