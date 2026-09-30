@@ -36,6 +36,7 @@ The browser's back button works. Pages behind sign-in redirect to Sign-in first 
 - `js/pages.js` — every page
 - `js/app.js` — routing, actions, navigation bar, tab bar, footer
 - `assets/` — logo, avatar, Google and Facebook icons, and the rent / lease / both photos
+- `assets/products/` — cut-out product photos (helmet, jacket, gloves, boots, pants, backpack) used on every gear card, gallery, checkout, rentals and the listing wizard. Items in the same category reuse one photo with a colour variant (`fx` in `js/data.js`); drop in more photos and point `PRODUCTS` or a gear item at them to change this.
 
 ## Notes
 - Fonts (Archivo, Istok Web, IBM Plex Mono) and icons (Material Symbols) load from Google Fonts, so it needs an internet connection. Offline it falls back to system fonts and hides icons.

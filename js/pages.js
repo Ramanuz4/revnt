@@ -82,7 +82,7 @@ function wizShell(step, title, sub, body, next) {
 }
 function previewCard() {
   const L = S.listing;
-  return `<article class="gcard">${art(L.cat, { tag: L.cat, img: L.photos[0] })}<div class="body"><span class="nm">${esc(L.name || 'Your gear')}</span><span class="meta"><span class="rate">${I('star')}New</span><span>· ${esc(L.brand || 'Brand')}</span></span><span class="pr"><b>${rs(L.perDay)}</b>/ day</span></div></article>`;
+  return `<article class="gcard">${art(L.cat, { tag: L.cat, img: L.photos[0], prod: PRODUCTS[L.cat], alt: 'Example ' + L.cat })}<div class="body"><span class="nm">${esc(L.name || 'Your gear')}</span><span class="meta"><span class="rate">${I('star')}New</span><span>· ${esc(L.brand || 'Brand')}</span></span><span class="pr"><b>${rs(L.perDay)}</b>/ day</span></div></article>`;
 }
 
 /* ================= PAGES ================= */
@@ -193,9 +193,9 @@ const PAGES = {
           <div class="stats"><div><b data-count="12000" data-suf="+">0</b><span>riders</span></div><div><b data-count="3400" data-suf="+">0</b><span>items listed</span></div><div><b>4.8</b><span>average rating</span></div></div>
         </div>
         <div class="stack-vis" aria-hidden="true">
-          <div class="fl a">${art('Helmets', { big: true })}</div>
-          <div class="fl b">${art('Jackets', { big: true })}</div>
-          <div class="fl c">${art('Gloves', { big: true })}</div>
+          <div class="fl a">${art('Helmets', { prod: PRODUCTS.Helmets })}</div>
+          <div class="fl b">${art('Jackets', { prod: PRODUCTS.Jackets })}</div>
+          <div class="fl c">${art('Boots', { prod: PRODUCTS.Boots })}</div>
           <div class="fl-chip"><span class="icon-circ" style="width:42px;height:42px">${I('verified', 'fill')}</span><div><b>Booking confirmed</b>KSR helmet · 4 days</div></div>
         </div>
       </div></section>
@@ -204,7 +204,7 @@ const PAGES = {
 
       <section class="section"><div class="wrap">
         <div class="sec-head" data-reveal><div><span class="kicker">Browse</span><h2 class="h2">Shop by category</h2></div><a class="see" href="#/explore">All gear${I('arrow_forward')}</a></div>
-        <div class="cat-grid">${CATS.map((c, i) => `<button class="cat" data-act="cat" data-v="${c.id}" data-reveal style="--d:${i}">${art(c.id)}<span class="lbl"><b>${c.id}</b><span>${c.blurb}</span></span></button>`).join('')}</div>
+        <div class="cat-grid">${CATS.map((c, i) => `<button class="cat" data-act="cat" data-v="${c.id}" data-reveal style="--d:${i}">${art(c.id, { prod: PRODUCTS[c.id], alt: c.id })}<span class="lbl"><b>${c.id}</b><span>${c.blurb}</span></span></button>`).join('')}</div>
       </div></section>
 
       <section class="section" style="padding-top:0"><div class="wrap">
@@ -293,14 +293,19 @@ const PAGES = {
     title: 'Gear Details', layout: 'site', back: 'explore',
     html: ({ id }) => {
       const g = gearById(id); S.gear = g.id;
-      const views = [g.cat, 'photo_camera', 'straighten', 'verified'];
+      const views = [
+        o => gearArt(g, o),
+        o => gearArt(g, { ...o, cls: (o.cls || '') + ' zoom' }),
+        o => gearArt(g, { ...o, cls: (o.cls || '') + ' studio' }),
+        o => g.views ? art(g.cat, { ...o, prod: g.views, alt: g.name + ', all views' }) : art(g.cat, { ...o, icon: 'verified', tag: o.big ? 'Sanitised & checked' : '' })
+      ];
       const similar = GEAR.filter(x => x.id !== g.id && (x.cat === g.cat || x.km < 2)).slice(0, 4);
       return `<section class="page"><div class="wrap">
         ${crumbs([['Home', 'home'], ['Explore', 'explore'], [g.cat, 'explore'], [g.title, 'gear/' + g.id]])}
         <div class="detail">
           <div class="gallery">
-            <div class="main" id="gmain">${heart(g.id)}${views.map((v, i) => art(g.cat, { icon: i ? v : undefined, cls: i ? '' : 'on', big: true })).join('')}</div>
-            <div class="thumbs">${views.map((v, i) => `<button class="${i ? '' : 'on'}" data-act="gview" data-v="${i}" aria-label="View ${i + 1}">${art(g.cat, { icon: i ? v : undefined })}</button>`).join('')}</div>
+            <div class="main" id="gmain">${heart(g.id)}${views.map((v, i) => v({ cls: i ? '' : 'on', big: true })).join('')}</div>
+            <div class="thumbs">${views.map((v, i) => `<button class="${i ? '' : 'on'}" data-act="gview" data-v="${i}" aria-label="View ${i + 1}">${v({})}</button>`).join('')}</div>
           </div>
           <div class="buy">
             <span class="kicker">${esc(g.brand)} · ${esc(g.cat)}</span>
@@ -345,7 +350,7 @@ const PAGES = {
             <div class="panel row" style="gap:14px;align-items:flex-start">${I('shield', 'accent')}<div><b>Protected rental</b><p class="small" style="margin-top:2px">Your deposit is held by REVNT and refunded within 48 hours of return.</p></div></div>
           </div>
         </div>
-        <aside class="summary card pad"><div class="item">${art(g.cat)}<div><b>${esc(g.title)}</b><div class="small">Size ${S.size} · ${esc(g.owner)}</div></div></div>
+        <aside class="summary card pad"><div class="item">${gearArt(g)}<div><b>${esc(g.title)}</b><div class="small">Size ${S.size} · ${esc(g.owner)}</div></div></div>
           <h2 class="h3" style="margin-bottom:6px">Price Break-up</h2>${breakdown(p)}
           <a class="btn block lg" style="margin-top:18px" href="#/payment">Continue${I('arrow_forward', 'slide')}</a></aside>
         </div></div></section>`;
@@ -370,7 +375,7 @@ const PAGES = {
           <div class="collapse ${S.pay === 'upi' ? 'open' : ''}"><div><label class="label" for="upi" style="margin-top:18px">UPI ID</label><input class="field" id="upi" value="ayushroy@okaxis"></div></div>
           <div class="collapse ${S.pay === 'card' ? 'open' : ''}"><div><div class="grid2" style="margin-top:18px"><div><label class="label" for="cn">Card number</label><input class="field" id="cn" inputmode="numeric" placeholder="1234 5678 9012 3456"></div><div class="grid2"><div><label class="label" for="ce">Expiry</label><input class="field" id="ce" placeholder="MM/YY"></div><div><label class="label" for="cv">CVV</label><input class="field" id="cv" inputmode="numeric" placeholder="123"></div></div></div></div></div>
         </div>
-        <aside class="summary card pad"><div class="item">${art(g.cat)}<div><b>${esc(g.title)}</b><div class="small">${fmtDate(S.from, false)} – ${fmtDate(S.to, false)} · ${esc(S.pickup.split(',')[0].replace(/ \(.*/, ''))}</div></div></div>
+        <aside class="summary card pad"><div class="item">${gearArt(g)}<div><b>${esc(g.title)}</b><div class="small">${fmtDate(S.from, false)} – ${fmtDate(S.to, false)} · ${esc(S.pickup.split(',')[0].replace(/ \(.*/, ''))}</div></div></div>
           <h2 class="h3" style="margin-bottom:6px">Price Details</h2>${breakdown(p)}
           <button class="btn block lg" style="margin-top:18px" data-act="payNow">${I('lock')}Pay ${rs(p.total)}</button>
           <p class="small" style="text-align:center;margin-top:10px">Demo checkout. No real payment is made.</p></aside>
@@ -385,7 +390,7 @@ const PAGES = {
       const r = S.rentals[0], g = gearById(r.gear);
       return `<section class="celebrate"><canvas id="confetti"></canvas>
         ${checkAnim()}<h1 class="h1">Booking Confirmed!</h1><p class="lead">Your gear is reserved.</p>
-        <div class="receipt card pad"><div class="row" style="gap:14px">${art(g.cat, {}).replace('class="art', 'style="width:60px;height:60px;border-radius:14px;flex:none" class="art')}<div style="flex:1"><b>${esc(g.title)}</b><div class="small">${r.from} – ${r.to} · Pick-up ${esc(r.pickup)}</div></div><span class="pill">Upcoming</span></div></div>
+        <div class="receipt card pad"><div class="row" style="gap:14px">${gearArt(g, { cls: 'mini' })}<div style="flex:1"><b>${esc(g.title)}</b><div class="small">${r.from} – ${r.to} · Pick-up ${esc(r.pickup)}</div></div><span class="pill">Upcoming</span></div></div>
         <div class="acts"><a class="btn lg" href="#/rentals">View Rental Details</a><a class="btn lg ghost" href="#/home">Go to Home</a></div>
         ${mountains()}<h2 class="h2" style="margin-top:14px;animation:fadeUp .6s 1.2s both">See you on the Ride!</h2><p class="tagline">#RideWithREVNT</p></section>`;
     },
@@ -400,7 +405,7 @@ const PAGES = {
       return `<section class="page"><div class="wrap">
         ${crumbs([['Home', 'home'], ['Profile', 'profile'], ['My Rentals', 'rentals']])}
         <div class="page-head"><h1 class="h1">My Rentals</h1>${seg(['Upcoming', 'Active', 'Completed'], S.rentTab, 'rtab')}</div>
-        <div class="dash-grid">${L.map((r, i) => { const g = gearById(r.gear); return `<a class="card lcard" href="#/gear/${g.id}" data-reveal style="--d:${i}">${art(g.cat)}<div class="info"><b>${esc(g.name)}</b><span class="small">${I('date_range')} ${r.from} – ${r.to}</span><span class="small">${I('location_on')} Pick-up: ${esc(r.pickup)}</span></div><span class="pill ${r.status === 'Active' ? 'ok' : r.status === 'Completed' ? 'mute' : ''}">${r.status}</span></a>`; }).join('')
+        <div class="dash-grid">${L.map((r, i) => { const g = gearById(r.gear); return `<a class="card lcard" href="#/gear/${g.id}" data-reveal style="--d:${i}">${gearArt(g)}<div class="info"><b>${esc(g.name)}</b><span class="small">${I('date_range')} ${r.from} – ${r.to}</span><span class="small">${I('location_on')} Pick-up: ${esc(r.pickup)}</span></div><span class="pill ${r.status === 'Active' ? 'ok' : r.status === 'Completed' ? 'mute' : ''}">${r.status}</span></a>`; }).join('')
           || `<div class="empty">${I('two_wheeler')}No ${S.rentTab.toLowerCase()} rentals yet.<div style="margin-top:14px"><a class="btn sm" href="#/explore">Find gear</a></div></div>`}</div>
       </div></section>`;
     }
@@ -411,7 +416,7 @@ const PAGES = {
     title: 'List Gear', layout: 'site', tab: 'list', auth: true,
     html: () => wizShell(0, 'What are you Listing?', 'Pick the category that fits best.',
       `<div class="cat-pick">${[['Helmets', 'sports_motorsports'], ['Jackets', 'apparel'], ['Pants', 'checkroom'], ['Gloves', 'pan_tool'], ['Boots', 'hiking'], ['Protection', 'shield'], ['Weather Gear', 'weather_hail'], ['Accessories', 'backpack']].map(([l, ic], i) =>
-        `<button class="${S.listing.cat === l ? 'on' : ''}" data-act="lcat" data-v="${l}" data-reveal style="--d:${i}"><span class="icon-circ">${I(ic)}</span>${l}</button>`).join('')}</div>`,
+        `<button class="${S.listing.cat === l ? 'on' : ''}" data-act="lcat" data-v="${l}" data-reveal style="--d:${i}">${PRODUCTS[l] ? `<span class="pick-img">${art(l, { prod: PRODUCTS[l] })}</span>` : `<span class="icon-circ">${I(ic)}</span>`}${l}</button>`).join('')}</div>`,
       `<a class="btn lg" href="#/list/photos">Continue${I('arrow_forward', 'slide')}</a>`)
   },
   'list/photos': {
@@ -419,7 +424,7 @@ const PAGES = {
     html: () => {
       const P = S.listing.photos;
       return wizShell(1, 'Add Photos', 'Good light and a plain background help renters trust your listing.',
-        `<label class="upload" id="drop" for="upl">${P[0] ? `<img src="${P[0]}" alt="Cover photo">` : `${I('add_a_photo')}<b>Upload Photos</b><span class="small">Drag images here or click. Add up to 10 photos.</span>`}</label>
+        `<label class="upload" id="drop" for="upl">${P[0] ? `<img src="${P[0]}" alt="Cover photo">` : `${PRODUCTS[S.listing.cat] ? `<img class="ghost" src="${PRODUCTS[S.listing.cat]}" alt="">` : ''}${I('add_a_photo')}<b>Upload Photos</b><span class="small">Drag images here or click. Add up to 10 photos.</span>`}</label>
         <input type="file" id="upl" class="sr" accept="image/*" multiple>
         <div class="thumbs-row">${[1, 2, 3, 4].map(i => P[i] ? `<div><img src="${P[i]}" alt=""></div>` : `<label for="upl">${I('add')}</label>`).join('')}</div>
         <p class="small" style="margin-top:10px">${P.length ? `${P.length} photo${P.length > 1 ? 's' : ''} added. The first one is your cover.` : 'No photos yet. You can also add them later.'}</p>`,
@@ -485,7 +490,7 @@ const PAGES = {
         ${crumbs([['Home', 'home'], ['Profile', 'profile'], ['My Listings', 'listings']])}
         <div class="page-head"><div><h1 class="h1">My Listings</h1><p class="lead">${S.myListings.filter(l => l.status === 'Active').length} active · ${n} new request${n === 1 ? '' : 's'}</p></div>
           <div class="row" style="flex-wrap:wrap">${seg(['Active', 'Pending', 'Expired'], S.listTab, 'ltab')}<a class="btn" href="#/requests">${I('inbox')}Requests${n ? ` (${n})` : ''}</a></div></div>
-        <div class="dash-grid">${L.map((l, i) => `<div class="card lcard" data-reveal style="--d:${i}">${art(l.cat, { img: l.photo })}<div class="info"><b>${esc(l.title)}</b><span><b class="accent">${rs(l.price)}</b> / day</span><span class="small">${l.status === 'Active' ? '6 rentals · ★ 4.8' : l.status === 'Pending' ? 'Under review, usually within 2 hours' : 'Ended 12th Aug'}</span></div><span class="pill ${l.status === 'Active' ? 'ok' : l.status === 'Expired' ? 'mute' : ''}">${l.status}</span></div>`).join('')
+        <div class="dash-grid">${L.map((l, i) => `<div class="card lcard" data-reveal style="--d:${i}">${art(l.cat, { img: l.photo, prod: PRODUCTS[l.cat], alt: l.title })}<div class="info"><b>${esc(l.title)}</b><span><b class="accent">${rs(l.price)}</b> / day</span><span class="small">${l.status === 'Active' ? '6 rentals · ★ 4.8' : l.status === 'Pending' ? 'Under review, usually within 2 hours' : 'Ended 12th Aug'}</span></div><span class="pill ${l.status === 'Active' ? 'ok' : l.status === 'Expired' ? 'mute' : ''}">${l.status}</span></div>`).join('')
           || `<div class="empty">${I('inventory_2')}Nothing ${S.listTab.toLowerCase()} right now.</div>`}
           <a class="card lcard" href="#/list" style="border-style:dashed;justify-content:center;min-height:112px;color:var(--brand);font-weight:700">${I('add')}List new gear</a></div>
       </div></section>`;

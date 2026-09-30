@@ -9,15 +9,20 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HOVER = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 /* product art tile: gradient + stripes + big icon */
-function art(catId, { icon, cls = '', tag = '', img = '', big = false } = {}) {
+function art(catId, { icon, cls = '', tag = '', img = '', big = false, prod = '', fx = '', alt = '' } = {}) {
   const c = catById(catId);
-  return `<div class="art tint-${c.tint} ${cls}">${img ? `<img src="${img}" alt="">` : I(icon || c.icon, big ? 'huge' : '')}${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</div>`;
+  const inner = img ? `<img src="${img}" alt="">`
+    : prod ? `<img class="prod" src="${prod}" alt="${esc(alt)}" loading="lazy" decoding="async"${fx ? ` style="--fx:${fx}"` : ''}>`
+    : I(icon || c.icon, big ? 'huge' : '');
+  return `<div class="art tint-${c.tint} ${prod && !img ? 'has-prod' : ''} ${cls}">${inner}${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</div>`;
 }
+/* product photo for a gear item (falls back to the category icon) */
+const gearArt = (g, opts = {}) => art(g.cat, { prod: PRODUCTS[g.cat], fx: g.fx, alt: g.name, ...opts });
 const heart = (id) => `<button class="heart ${S.fav.has(id) ? 'on' : ''}" data-act="fav" data-id="${id}" aria-label="Save ${esc(gearById(id).name)}" aria-pressed="${S.fav.has(id)}">${I('favorite')}</button>`;
 function gcard(g, i = 0) {
   return `<article class="gcard" data-reveal style="--d:${i % 8}">
     ${heart(g.id)}
-    <a href="#/gear/${g.id}" aria-label="${esc(g.name)}">${art(g.cat, { tag: g.cat })}</a>
+    <a href="#/gear/${g.id}" aria-label="${esc(g.name)}">${gearArt(g, { tag: g.cat })}</a>
     <a class="body" href="#/gear/${g.id}">
       <span class="nm">${esc(g.name)}</span>
       <span class="meta"><span class="rate">${I('star')}${g.rating}</span><span class="km">· ${g.km} km · ${esc(g.area)}</span></span>

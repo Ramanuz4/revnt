@@ -17,27 +17,34 @@ const CATS = [
 ];
 const catById = id => CATS.find(c => c.id === id) || CATS[0];
 
+/* product cut-outs by category (assets/products) */
+const PRODUCTS = {
+  Helmets: 'assets/products/helmet.webp', Jackets: 'assets/products/jacket.webp', Gloves: 'assets/products/gloves.webp',
+  Boots: 'assets/products/boots.webp', Pants: 'assets/products/pants.webp', Accessories: 'assets/products/backpack.webp'
+};
+
+/* fx = colour variant of the shared category photo */
 const GEAR = [
-  { id: 'k5r', name: 'K5R Anomalistic Helmet',      title: 'KSR Anomalistic - 7V',  brand: 'KSR',         price: 500, cat: 'Helmets',     rating: 4.8, reviews: 32, km: 2,   owner: 'Ayush K.', area: 'Koramangala',
-    desc: 'ECE 22.06 full-face helmet with a pinlock-ready clear visor and an internal sun shield. Sanitised after every rental.', specs: [['Certification', 'ECE 22.06'], ['Weight', '1,450 g'], ['Visor', 'Clear + drop-down tint'], ['Condition', 'Like new']] },
-  { id: 'nhk', name: 'NHK Alonso Starwhite Helmet', title: 'NHK Alonso Starwhite',  brand: 'NHK',         price: 700, cat: 'Helmets',     rating: 4.6, reviews: 18, km: 3.4, owner: 'Karan S.', area: 'HSR Layout',
-    desc: 'Race-replica graphics, aerodynamic spoiler and a wide eye-port. Ideal for track days and fast weekend runs.', specs: [['Certification', 'DOT + ECE'], ['Weight', '1,520 g'], ['Visor', 'Smoke'], ['Condition', 'Good']] },
-  { id: 'hjc', name: 'HJC RPHA 11 Helmet',          title: 'HJC RPHA 11',           brand: 'HJC',         price: 900, cat: 'Helmets',     rating: 4.9, reviews: 12, km: 5.1, owner: 'Riya M.',  area: 'Indiranagar',
-    desc: 'Carbon-composite shell used in MotoGP. Very light and very quiet at speed.', specs: [['Certification', 'ECE 22.06'], ['Weight', '1,290 g'], ['Visor', 'Iridium'], ['Condition', 'Like new']] },
-  { id: 'dai', name: 'Dainese Super Speed Jacket',  title: 'Dainese Super Speed 4', brand: 'Dainese',     price: 650, cat: 'Jackets',     rating: 4.9, reviews: 41, km: 1.2, owner: 'Riya M.',  area: 'Indiranagar',
-    desc: 'Perforated leather sports jacket with CE level 2 shoulder and elbow armour. Zips to matching pants.', specs: [['Armour', 'CE Level 2'], ['Material', 'Perforated leather'], ['Back protector', 'Pocket ready'], ['Condition', 'Excellent']] },
-  { id: 'ryn', name: 'Rynox Stealth Evo Jacket',    title: 'Rynox Stealth Evo 5',   brand: 'Rynox',       price: 400, cat: 'Jackets',     rating: 4.5, reviews: 27, km: 2.8, owner: 'Karan S.', area: 'HSR Layout',
-    desc: 'All-season touring jacket with a removable thermal liner and a rain layer. Built for Indian summers and monsoons.', specs: [['Armour', 'CE Level 1'], ['Material', 'Mesh + textile'], ['Liners', 'Thermal + rain'], ['Condition', 'Good']] },
-  { id: 'alp', name: 'Alpinestars SP-8 Gloves',     title: 'Alpinestars SP-8 V3',   brand: 'Alpinestars', price: 150, cat: 'Gloves',      rating: 4.7, reviews: 22, km: 0.9, owner: 'Ayush K.', area: 'Koramangala',
-    desc: 'Short-cuff leather sport gloves with knuckle protection and touchscreen fingertips.', specs: [['Protection', 'Hard knuckle'], ['Material', 'Goat leather'], ['Touchscreen', 'Yes'], ['Condition', 'Like new']] },
-  { id: 'bbg', name: 'BBG Snake Skin Gloves',       title: 'BBG Snake Skin',        brand: 'BBG',         price: 120, cat: 'Gloves',      rating: 4.3, reviews: 9,  km: 4.2, owner: 'Dev P.',   area: 'Jayanagar',
-    desc: 'Affordable full-gauntlet gloves for highway runs, with palm sliders.', specs: [['Protection', 'Palm sliders'], ['Material', 'Textile + leather'], ['Touchscreen', 'No'], ['Condition', 'Good']] },
-  { id: 'tvs', name: 'TVS Racing Touring Boots',    title: 'TVS Racing Touring',    brand: 'TVS Racing',  price: 300, cat: 'Boots',       rating: 4.6, reviews: 15, km: 3.0, owner: 'Dev P.',   area: 'Jayanagar',
-    desc: 'Waterproof mid-length touring boots with ankle cups and an oil-resistant sole.', specs: [['Height', 'Mid-calf'], ['Waterproof', 'Yes'], ['Closure', 'Zip + velcro'], ['Condition', 'Good']] },
-  { id: 'rai', name: 'Raida Tourer Pants',          title: 'Raida Tourer',          brand: 'Raida',       price: 350, cat: 'Pants',       rating: 4.4, reviews: 11, km: 2.2, owner: 'Ayush K.', area: 'Koramangala',
-    desc: 'Riding pants with CE knee and hip armour and adjustable waist straps.', specs: [['Armour', 'CE knee + hip'], ['Waterproof', 'Liner included'], ['Fit', 'Regular'], ['Condition', 'Like new']] },
-  { id: 'via', name: 'Viaterra Hammer Tail Bag',    title: 'Viaterra Hammer',       brand: 'Viaterra',    price: 250, cat: 'Accessories', rating: 4.8, reviews: 30, km: 1.7, owner: 'Riya M.',  area: 'Indiranagar',
-    desc: '38-litre expandable tail bag with a rain cover and universal straps.', specs: [['Capacity', '38 L'], ['Rain cover', 'Included'], ['Mounting', 'Universal straps'], ['Condition', 'Excellent']] }
+  { id: 'k5r', name: 'KSR Anomalistic Modular Helmet', title: 'KSR Anomalistic - 7V', brand: 'KSR', price: 500, cat: 'Helmets', rating: 4.8, reviews: 32, km: 2, owner: 'Ayush K.', area: 'Koramangala',
+    desc: 'Modular flip-up helmet in wine red with an ECE 22.06 rating, clear visor and a drop-down sun shield. Sanitised after every rental.', specs: [['Certification', 'ECE 22.06'], ['Type', 'Modular flip-up'], ['Visor', 'Clear + drop-down tint'], ['Condition', 'Like new']] },
+  { id: 'nhk', name: 'NHK Alonso Modular Helmet', title: 'NHK Alonso Blue', brand: 'NHK', price: 700, cat: 'Helmets', rating: 4.6, reviews: 18, km: 3.4, owner: 'Karan S.', area: 'HSR Layout', fx: 'hue-rotate(205deg) saturate(1.1)',
+    desc: 'Modular touring helmet with a quick-release chin bar, wide eye-port and Bluetooth speaker pockets.', specs: [['Certification', 'DOT + ECE'], ['Type', 'Modular flip-up'], ['Visor', 'Clear, pinlock ready'], ['Condition', 'Good']] },
+  { id: 'hjc', name: 'HJC Stealth Modular Helmet', title: 'HJC Stealth Black', brand: 'HJC', price: 900, cat: 'Helmets', rating: 4.9, reviews: 12, km: 5.1, owner: 'Riya M.', area: 'Indiranagar', fx: 'grayscale(1) brightness(.62) contrast(1.25)',
+    desc: 'Gloss-black composite shell, very quiet at speed. Comes with a spare smoke visor.', specs: [['Certification', 'ECE 22.06'], ['Weight', '1,290 g'], ['Visor', 'Clear + smoke'], ['Condition', 'Like new']] },
+  { id: 'dai', name: 'Rainbow Apex Leather Jacket', title: 'Rainbow Apex Leather', brand: 'Rainbow', price: 650, cat: 'Jackets', rating: 4.9, reviews: 41, km: 1.2, owner: 'Riya M.', area: 'Indiranagar',
+    desc: 'Full-grain leather sports jacket with CE level 2 shoulder and elbow armour, stretch panels and a waist adjuster. Zips to matching pants.', specs: [['Armour', 'CE Level 2'], ['Material', 'Full-grain leather'], ['Back protector', 'Pocket ready'], ['Condition', 'Excellent']] },
+  { id: 'ryn', name: 'Rainbow Street Leather Jacket', title: 'Rainbow Street', brand: 'Rainbow', price: 400, cat: 'Jackets', rating: 4.5, reviews: 27, km: 2.8, owner: 'Karan S.', area: 'HSR Layout', fx: 'sepia(.35) saturate(.8)',
+    desc: 'Everyday leather riding jacket with CE armour and cuff zips. A good first jacket for city riders.', specs: [['Armour', 'CE Level 1'], ['Material', 'Leather'], ['Liner', 'Removable'], ['Condition', 'Good']] },
+  { id: 'alp', name: 'Inbike Carbon Knuckle Gloves', title: 'Inbike Carbon Pro', brand: 'Inbike', price: 150, cat: 'Gloves', rating: 4.7, reviews: 22, km: 0.9, owner: 'Ayush K.', area: 'Koramangala',
+    desc: 'Leather gauntlet gloves with carbon-fibre knuckle guards, palm sliders and touchscreen fingertips.', specs: [['Protection', 'Carbon knuckle'], ['Material', 'Goat leather'], ['Touchscreen', 'Yes'], ['Condition', 'Like new']] },
+  { id: 'bbg', name: 'Inbike Tourer Gloves', title: 'Inbike Tourer', brand: 'Inbike', price: 120, cat: 'Gloves', rating: 4.3, reviews: 9, km: 4.2, owner: 'Dev P.', area: 'Jayanagar', fx: 'brightness(1.15) contrast(.9)',
+    desc: 'Affordable full-gauntlet gloves for highway runs, with palm sliders and a velcro wrist strap.', specs: [['Protection', 'Palm sliders'], ['Material', 'Textile + leather'], ['Touchscreen', 'Yes'], ['Condition', 'Good']] },
+  { id: 'tvs', name: 'Rideract Enjoy Race Boots', title: 'Rideract Enjoy Race', brand: 'Rideract', price: 300, cat: 'Boots', rating: 4.6, reviews: 15, km: 3.0, owner: 'Dev P.', area: 'Jayanagar',
+    desc: 'CE-certified racing boots with hard shin plates, replaceable toe sliders and a full-length side zip.', specs: [['Height', 'Over-calf'], ['Certification', 'CE'], ['Closure', 'Side zip + velcro'], ['Condition', 'Good']] },
+  { id: 'rai', name: 'Alpinestars Track v2 Pants', title: 'Alpinestars Track v2', brand: 'Alpinestars', price: 350, cat: 'Pants', rating: 4.4, reviews: 11, km: 2.2, owner: 'Ayush K.', area: 'Koramangala',
+    desc: 'Perforated leather track pants with knee sliders, stretch panels and CE knee armour. Zips to most leather jackets.', specs: [['Armour', 'CE knee'], ['Knee sliders', 'Replaceable'], ['Fit', 'Sport'], ['Condition', 'Like new']] },
+  { id: 'via', name: 'Key of Street Helmet Backpack', title: 'Key of Street Helmet Pack', brand: 'Key of Street', price: 250, cat: 'Accessories', rating: 4.8, reviews: 30, km: 1.7, owner: 'Riya M.', area: 'Indiranagar', views: 'assets/products/backpack-views.webp',
+    desc: 'Hard-shell camo backpack that swallows a full-face helmet, with a laptop sleeve, bottle pocket and reflective strips.', specs: [['Capacity', '35 L'], ['Fits', 'Full-face helmet'], ['Reflective', 'Yes'], ['Condition', 'Excellent']] }
 ];
 const gearById = id => GEAR.find(g => g.id === id) || GEAR[0];
 
@@ -53,11 +60,11 @@ const PURPOSES = [
   ['both', 'sync_alt', 'Both', 'Rent and list gear.']
 ];
 
-const BRANDS = ['KSR', 'Alpinestars', 'Dainese', 'HJC', 'Rynox', 'Viaterra', 'Raida', 'TVS Racing', 'BBG', 'NHK'];
+const BRANDS = ['KSR', 'Alpinestars', 'Rainbow', 'HJC', 'Rideract', 'Inbike', 'Key of Street', 'NHK', 'Rynox', 'Raida'];
 const EARNINGS = [['Mar', 3200], ['Apr', 5100], ['May', 6400], ['Jun', 7800], ['Jul', 9200], ['Aug', 11000], ['Sep', 12500]];
 const TRANSACTIONS = [
-  ['2,000', 'KSR Helmet', 'Karan S.', '21st Jan'], ['1,500', 'Dainese Jacket', 'Sneha R.', '18th Jul'], ['1,200', 'HJC Helmet', 'Arjun T.', '18th Jul'],
-  ['900', 'Alpinestars Gloves', 'Dev P.', '2nd Jul'], ['2,400', 'Rynox Jacket', 'Riya M.', '24th Jun']
+  ['2,000', 'KSR Helmet', 'Karan S.', '21st Jan'], ['1,500', 'Rainbow Jacket', 'Sneha R.', '18th Jul'], ['1,200', 'HJC Helmet', 'Arjun T.', '18th Jul'],
+  ['900', 'Inbike Gloves', 'Dev P.', '2nd Jul'], ['2,400', 'Rainbow Street Jacket', 'Riya M.', '24th Jun']
 ];
 const CONTACTS = [['Ayush K.', '2m'], ['Karan S.', '14m'], ['Riya M.', '1h'], ['Dev P.', '3h'], ['Sneha R.', '1d'], ['Arjun T.', '2d']];
 const AUTO_REPLIES = ['Sounds good! See you at pick-up.', 'Can you share your helmet size?', 'Perfect, I’ll book it now.', 'Is the deposit refunded the same day?'];
@@ -91,14 +98,14 @@ function freshState() {
     listing: { cat: 'Helmets', photos: [], name: 'KSR Anomalistic - 7V', brand: 'KSR', model: 'Anomalistic - 7V', desc: '', perDay: 500, perWeek: '', deposit: 1000, blocked: new Set() },
     myListings: [
       { title: 'HJC RPHA 11 Helmet', price: 900, status: 'Active', cat: 'Helmets' },
-      { title: 'Raida Tourer Pants', price: 350, status: 'Pending', cat: 'Pants' },
-      { title: 'BBG Snake Skin Gloves', price: 120, status: 'Expired', cat: 'Gloves' }
+      { title: 'Alpinestars Track v2 Pants', price: 350, status: 'Pending', cat: 'Pants' },
+      { title: 'Inbike Tourer Gloves', price: 120, status: 'Expired', cat: 'Gloves' }
     ],
     listTab: 'Active',
     requests: [
       { id: 1, who: 'Karan S.', rating: 4.8, count: 12, gear: 'KSR Anomalistic - 7V', from: '21st Jan', to: '25th Jan', total: 3100, msg: 'Hi! I’d like to rent this for my trip this weekend.', status: 'New' },
       { id: 2, who: 'Riya M.', rating: 4.9, count: 7, gear: 'HJC RPHA 11', from: '3rd Feb', to: '5th Feb', total: 2900, msg: 'Is the visor tinted? Planning a Nandi Hills sunrise ride.', status: 'New' },
-      { id: 3, who: 'Dev P.', rating: 4.5, count: 3, gear: 'Raida Tourer Pants', from: '9th Jan', to: '11th Jan', total: 1800, msg: 'Need size M for a Coorg run.', status: 'Accepted' }
+      { id: 3, who: 'Dev P.', rating: 4.5, count: 3, gear: 'Alpinestars Track v2 Pants', from: '9th Jan', to: '11th Jan', total: 1800, msg: 'Need size M for a Coorg run.', status: 'Accepted' }
     ],
     reqTab: 'New',
     chats: { 'Ayush K.': [['them', 'Is it still available?'], ['me', 'Yes it is. When are you planning to rent it?'], ['them', 'This weekend. 21st–25th.']] },
